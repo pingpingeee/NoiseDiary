@@ -42,7 +42,7 @@
 </tr>
 <tr>
 <td><img src="https://img.shields.io/badge/🤝_협업_도구-7ED321?style=flat&logoColor=white" alt="협업 도구"></td>
-<td>Tistory/td>
+<td>Tistory</td>
 </tr>
 <tr>
 <td><img src="https://img.shields.io/badge/🧪_API_테스트-F5A623?style=flat&logoColor=white" alt="API 테스트"></td>
