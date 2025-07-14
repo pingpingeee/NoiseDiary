@@ -1,0 +1,59 @@
+package com.noise_diary.com.auth.controller;
+
+import com.noise_diary.com.auth.dto.LoginRequest;
+import com.noise_diary.com.auth.dto.LoginResponse;
+import com.noise_diary.com.auth.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            LoginResponse loginResponse = authService.login(loginRequest);
+            return ResponseEntity.ok(loginResponse);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Hello from Spring Boot!");
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+        try {
+            String jwtToken = token.replace("Bearer ", "");
+            boolean isValid = authService.validateToken(jwtToken);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", isValid);
+            response.put("message", isValid ? "토큰이 유효합니다" : "토큰이 유효하지 않습니다");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("valid", false);
+            error.put("message", "토큰 검증 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+}

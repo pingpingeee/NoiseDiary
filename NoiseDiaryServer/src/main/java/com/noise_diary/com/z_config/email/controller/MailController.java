@@ -1,0 +1,122 @@
+package com.noise_diary.com.z_config.email.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.noise_diary.com.z_config.email.service.MailService;
+import com.noise_diary.com.user.service.UserService;
+import com.noise_diary.com.user.dto.EmailVerificationDto;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/email")
+public class MailController {
+    
+    @Autowired
+    private MailService mailService;
+    
+    @Autowired
+    private UserService userService;
+    
+    // 인증코드 저장소 (실제 운영에서는 Redis 사용 권장)
+    private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    
+    // 이메일 인증코드 발송
+    @PostMapping("/send-verification")
+    public ResponseEntity<?> sendVerificationCode(@RequestParam("email") String email) {
+        try {
+//            System.out.println("이메일 인증 요청: " + email);
+            
+            // 이메일 중복 체크
+            if (userService.isEmailExists(email)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(createErrorResponse("이미 사용 중인 이메일입니다."));
+            }
+            
+            // 인증 코드 발송
+            String code = mailService.sendSimpleMessage(email);
+            System.out.println("인증코드 : " + code);
+            
+            // 인증코드 저장 (5분 후 자동 삭제)
+            verificationCodes.put(email, code);
+            scheduler.schedule(() -> verificationCodes.remove(email), 5, TimeUnit.MINUTES);
+            
+            return ResponseEntity.ok(createSuccessResponse("인증코드가 발송되었습니다. 5분 내에 입력해주세요.", null));
+            
+        } catch (Exception e) {
+            System.err.println("이메일 발송 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("이메일 발송에 실패했습니다. 다시 시도해주세요."));
+        }
+    }
+    
+    // 인증코드 검증
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@Valid @RequestBody EmailVerificationDto verificationDto) {
+        try {
+            String email = verificationDto.getEmail();
+            String inputCode = verificationDto.getVerificationCode();
+            String storedCode = verificationCodes.get(email);
+            
+            if (storedCode == null) {
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("인증코드가 만료되었거나 존재하지 않습니다. 다시 요청해주세요."));
+            }
+            
+            if (!storedCode.equals(inputCode)) {
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("인증코드가 일치하지 않습니다."));
+            }
+            
+            // 인증 성공 - 인증코드 삭제
+            verificationCodes.remove(email);
+            
+            return ResponseEntity.ok(createSuccessResponse("이메일 인증이 완료되었습니다.", null));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(createErrorResponse("인증 처리 중 오류가 발생했습니다."));
+        }
+    }
+    
+    // 인증 상태 확인 (회원가입 시 사용)
+    @GetMapping("/check-verification/{email}")
+    public ResponseEntity<?> checkVerificationStatus(@PathVariable String email) {
+        boolean isVerified = !verificationCodes.containsKey(email) && userService.isEmailExists(email);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("verified", isVerified);
+        response.put("message", isVerified ? "인증 완료된 이메일입니다" : "인증이 필요한 이메일입니다");
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // 응답 생성 헬퍼 메서드
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", message);
+        if (data != null) {
+            response.put("data", data);
+        }
+        return response;
+    }
+    
+    private Map<String, Object> createErrorResponse(String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", message);
+        return response;
+    }
+}

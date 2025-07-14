@@ -1,0 +1,62 @@
+package com.noise_diary.com.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "user_info")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserInfo {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "USER_SEQ", allocationSize = 1)
+    @Column(name = "user_id")
+    private Long userId;
+    
+    @Column(name = "username", unique = true, nullable = false, length = 50)
+    private String username;
+    
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
+    
+    @Column(name = "email", unique = true, nullable = false, length = 100)
+    private String email;
+    
+    @Column(name = "nickname", length = 50)
+    private String nickname;
+    
+    @Column(name = "phone", length = 20)
+    private String phone;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
+    
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+    
+    // 사용자 상태 enum
+    public enum UserStatus {
+        ACTIVE, INACTIVE, SUSPENDED, DELETED
+    }
+}

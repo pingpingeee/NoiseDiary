@@ -1,0 +1,169 @@
+package com.noise_diary.com.user.controller;
+
+import com.noise_diary.com.user.dto.UserRegistrationDto;
+import com.noise_diary.com.user.dto.UserResponseDto;
+import com.noise_diary.com.user.dto.UserUpdateDto;
+import com.noise_diary.com.user.entity.UserInfo;
+import com.noise_diary.com.user.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    // 회원가입
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDto registrationDto) {
+        try {
+            // 비밀번호 확인
+            if (!registrationDto.getPassword().equals(registrationDto.getConfirmPassword())) {
+                return ResponseEntity.badRequest().body(createErrorResponse("비밀번호가 일치하지 않습니다"));
+            }
+            
+            // 중복 확인
+            if (userService.isUserIdExists(registrationDto.getUserId())) {
+                return ResponseEntity.badRequest().body(createErrorResponse("이미 존재하는 사용자 ID입니다"));
+            }
+            
+            if (userService.isEmailExists(registrationDto.getEmail())) {
+                return ResponseEntity.badRequest().body(createErrorResponse("이미 존재하는 이메일입니다"));
+            }
+            
+            // 이메일 인증 확인은 프론트엔드에서 미리 처리했다고 가정
+            // 실제로는 여기서 한번 더 검증할 수 있음
+            
+            // DTO -> Entity 변환
+            UserInfo userInfo = new UserInfo();
+            userInfo.setUserId(registrationDto.getUserId());
+            userInfo.setPassword(registrationDto.getPassword());
+            userInfo.setName(registrationDto.getName());
+            userInfo.setEmail(registrationDto.getEmail());
+            userInfo.setPhone(registrationDto.getPhone());
+            userInfo.setBirthDate(registrationDto.getBirthDate());
+            userInfo.setRoadAddress(registrationDto.getRoadAddress());
+            userInfo.setAddress(registrationDto.getAddress());
+            userInfo.setDetailAddress(registrationDto.getDetailAddress());
+            
+            // 사용자 등록
+            UserInfo savedUser = userService.registerUser(userInfo);
+            UserResponseDto responseDto = new UserResponseDto(savedUser);
+            
+            return ResponseEntity.ok(createSuccessResponse("회원가입이 완료되었습니다", responseDto));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("회원가입 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+    
+    // 내 정보 조회
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getMyInfo(Authentication authentication) {
+        try {
+            String userId = authentication.getName();
+            UserInfo userInfo = userService.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+            
+            UserResponseDto responseDto = new UserResponseDto(userInfo);
+            return ResponseEntity.ok(createSuccessResponse("사용자 정보 조회 성공", responseDto));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("사용자 정보 조회 실패: " + e.getMessage()));
+        }
+    }
+    
+    // 내 정보 수정
+    @PutMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> updateMyInfo(@Valid @RequestBody UserUpdateDto updateDto, Authentication authentication) {
+        try {
+            String userId = authentication.getName();
+            UserInfo userInfo = userService.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+            
+            // 업데이트할 필드들 설정
+            if (updateDto.getName() != null) userInfo.setName(updateDto.getName());
+            if (updateDto.getEmail() != null) userInfo.setEmail(updateDto.getEmail());
+            if (updateDto.getPhone() != null) userInfo.setPhone(updateDto.getPhone());
+            if (updateDto.getBirthDate() != null) userInfo.setBirthDate(updateDto.getBirthDate());
+            if (updateDto.getRoadAddress() != null) userInfo.setRoadAddress(updateDto.getRoadAddress());
+            if (updateDto.getAddress() != null) userInfo.setAddress(updateDto.getAddress());
+            if (updateDto.getDetailAddress() != null) userInfo.setDetailAddress(updateDto.getDetailAddress());
+            
+            // 비밀번호 변경
+            if (updateDto.getNewPassword() != null && !updateDto.getNewPassword().isEmpty()) {
+                if (!updateDto.getNewPassword().equals(updateDto.getConfirmNewPassword())) {
+                    return ResponseEntity.badRequest().body(createErrorResponse("새 비밀번호가 일치하지 않습니다"));
+                }
+                userInfo.setPassword(updateDto.getNewPassword());
+            }
+            
+            UserInfo updatedUser = userService.registerUser(userInfo); // 비밀번호 암호화를 위해 registerUser 사용
+            UserResponseDto responseDto = new UserResponseDto(updatedUser);
+            
+            return ResponseEntity.ok(createSuccessResponse("사용자 정보가 수정되었습니다", responseDto));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("사용자 정보 수정 실패: " + e.getMessage()));
+        }
+    }
+    
+    // 사용자 ID 중복 확인
+    @GetMapping("/check-userid/{userId}")
+    public ResponseEntity<?> checkUserId(@PathVariable("userId") String userId) {
+        boolean exists = userService.isUserIdExists(userId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("exists", exists);
+        response.put("message", exists ? "이미 존재하는 사용자 ID입니다" : "사용 가능한 사용자 ID입니다");
+        return ResponseEntity.ok(response);
+    }
+    
+    // 이메일 중복 확인
+    @GetMapping("/check-email/{email}")
+    public ResponseEntity<?> checkEmail(@PathVariable String email) {
+        boolean exists = userService.isEmailExists(email);
+        Map<String, Object> response = new HashMap<>();
+        response.put("exists", exists);
+        response.put("message", exists ? "이미 존재하는 이메일입니다" : "사용 가능한 이메일입니다");
+        return ResponseEntity.ok(response);
+    }
+    
+    // 관리자 전용: 모든 사용자 조회
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            // 이 기능은 나중에 구현 (페이징 처리 등)
+            return ResponseEntity.ok(createSuccessResponse("관리자 기능 - 추후 구현 예정", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(createErrorResponse("사용자 목록 조회 실패: " + e.getMessage()));
+        }
+    }
+    
+    // 응답 생성 헬퍼 메서드
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", message);
+        response.put("data", data);
+        return response;
+    }
+    
+    private Map<String, Object> createErrorResponse(String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", message);
+        return response;
+    }
+}

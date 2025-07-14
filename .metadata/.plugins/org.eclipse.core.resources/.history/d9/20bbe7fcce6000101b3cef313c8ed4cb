@@ -1,0 +1,40 @@
+package com.noise_diary.com.z_config.security;
+
+import com.noise_diary.com.entity.UserInfo;
+import com.noise_diary.com.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserInfo userInfo = userRepository.findByUsernameOrEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        // 사용자 상태 확인
+        if (userInfo.getStatus() != UserInfo.UserStatus.ACTIVE) {
+            throw new UsernameNotFoundException("User account is not active: " + username);
+        }
+
+        return User.builder()
+                .username(userInfo.getUsername())
+                .password(userInfo.getPassword())
+                .authorities(new ArrayList<>()) // 권한은 나중에 추가
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+    }
+}

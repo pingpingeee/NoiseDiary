@@ -1,0 +1,55 @@
+package com.noise_diary.com.user.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserRegistrationDto {
+    
+    @NotBlank(message = "사용자 ID는 필수입니다")
+    @Size(min = 4, max = 20, message = "사용자 ID는 4-20자 사이여야 합니다")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "사용자 ID는 영문자와 숫자만 사용 가능합니다")
+    private String userId;
+    
+    @NotBlank(message = "비밀번호는 필수입니다")
+    @Size(min = 6, max = 30, message = "비밀번호는 6-30자 사이여야 합니다")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
+    		  message = "비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다")
+
+    private String password;
+    
+    @NotBlank(message = "비밀번호 확인은 필수입니다")
+    private String confirmPassword;
+    
+    @NotBlank(message = "이름은 필수입니다")
+    @Size(max = 50, message = "이름은 50자 이하여야 합니다")
+    private String name;
+    
+    @NotBlank(message = "이메일은 필수입니다")
+    @Email(message = "올바른 이메일 형식이 아닙니다")
+    @Size(max = 100, message = "이메일은 100자 이하여야 합니다")
+    private String email;
+    
+    @NotBlank(message = "이메일 인증코드는 필수입니다")
+    private String emailVerificationCode;
+    
+    @Pattern(regexp = "^01[0-9]-\\d{4}-\\d{4}$", message = "올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)")
+    private String phone;
+    
+    private LocalDate birthDate;
+    
+    @Size(max = 200, message = "도로명주소는 200자 이하여야 합니다")
+    private String roadAddress;
+    
+    @Size(max = 200, message = "주소는 200자 이하여야 합니다")
+    private String address;
+    
+    @Size(max = 100, message = "상세주소는 100자 이하여야 합니다")
+    private String detailAddress;
+}

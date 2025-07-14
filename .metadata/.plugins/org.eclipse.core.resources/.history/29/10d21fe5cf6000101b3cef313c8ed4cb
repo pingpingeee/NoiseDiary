@@ -1,0 +1,5 @@
+package com.noise_diary.com.auth.dto;
+
+public class LoginResponse {
+
+}

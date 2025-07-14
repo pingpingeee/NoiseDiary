@@ -1,0 +1,5 @@
+package com.noise_diary.com.user.dto;
+
+public class EmailVerificationDto {
+
+}

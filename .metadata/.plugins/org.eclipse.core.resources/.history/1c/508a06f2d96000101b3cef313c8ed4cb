@@ -1,0 +1,88 @@
+package com.noise_diary.com.z_config.jwt;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    // 인증이 필요하지 않은 경로들
+    private static final List<String> EXCLUDED_PATHS = Arrays.asList(
+        "/api/auth/",
+        "/api/users/register",
+        "/api/users/check-userid",
+        "/api/users/check-email",
+        "/api/users/check-",
+        "/api/mail/send-verification",
+        "/api/mail/verify-code",
+        "/api/email/",
+        "/api/public/",
+        "/h2-console"
+    );
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
+                                  FilterChain chain) throws ServletException, IOException {
+        
+        String requestPath = request.getRequestURI();
+        
+        // 제외 경로인지 확인
+        boolean shouldSkip = EXCLUDED_PATHS.stream()
+            .anyMatch(excludedPath -> requestPath.startsWith(excludedPath));
+        
+        if (shouldSkip) {
+            // 인증이 필요하지 않은 경로는 필터를 건너뛰고 다음으로 진행
+            chain.doFilter(request, response);
+            return;
+        }
+
+        final String requestTokenHeader = request.getHeader("Authorization");
+
+        String username = null;
+        String jwtToken = null;
+
+        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+            jwtToken = requestTokenHeader.substring(7);
+            try {
+                username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+            } catch (Exception e) {
+                logger.warn("JWT Token 처리 중 오류 발생: " + e.getMessage());
+            }
+        } else {
+            // 인증이 필요한 경로에서만 경고 로그 출력
+            logger.warn("JWT Token does not begin with Bearer String for path: " + requestPath);
+        }
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+            if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
+                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            }
+        }
+        chain.doFilter(request, response);
+    }
+}

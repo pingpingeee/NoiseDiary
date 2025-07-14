@@ -1,0 +1,46 @@
+package com.noise_diary.com.user.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.noise_diary.com.user.entity.UserInfo;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository<UserInfo, Long> {
+    
+    // 사용자 ID로 조회
+    Optional<UserInfo> findByUserId(String userId);
+    
+    // 이메일로 조회
+    Optional<UserInfo> findByEmail(String email);
+    
+    // 사용자 ID 또는 이메일로 조회 (로그인용)
+    @Query("SELECT u FROM UserInfo u WHERE u.userId = :userIdOrEmail OR u.email = :userIdOrEmail")
+    Optional<UserInfo> findByUserIdOrEmail(@Param("userIdOrEmail") String userIdOrEmail);
+    
+    // 사용자 ID 존재 여부
+    boolean existsByUserId(String userId);
+    
+    // 이메일 존재 여부 확인
+    boolean existsByEmail(String email);
+    
+    // 전화번호 존재 여부 확인
+    boolean existsByPhone(String phone);
+    
+    // 관리자 상태별 조회
+    List<UserInfo> findByAdminStatus(UserInfo.AdminStatus adminStatus);
+    
+    // 최근 로그인 사용자 조회
+    @Query("SELECT u FROM UserInfo u WHERE u.lastLoginDate >= :fromDate ORDER BY u.lastLoginDate DESC")
+    List<UserInfo> findRecentLoginUsers(@Param("fromDate") LocalDateTime fromDate);
+    
+    // 이름으로 검색 (LIKE 검색)
+    @Query("SELECT u FROM UserInfo u WHERE u.name LIKE %:name%")
+    List<UserInfo> findByNameContaining(@Param("name") String name);
+}

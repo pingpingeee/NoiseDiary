@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="com.noise_diary.com.z_config.email.service.MailService"/>
+    <fullyQualifiedTypeName name="jakarta.mail.internet.MimeMessage"/>
+    <fullyQualifiedTypeName name="jakarta.mail.Message.RecipientType"/>
+    <fullyQualifiedTypeName name="jakarta.mail.MessagingException"/>
+    <fullyQualifiedTypeName name="jakarta.mail.internet.InternetAddress"/>
+    <fullyQualifiedTypeName name="org.springframework.beans.factory.annotation.Value"/>
+    <fullyQualifiedTypeName name="javax.crypto.SecretKey"/>
+    <fullyQualifiedTypeName name="io.jsonwebtoken.ExpiredJwtException"/>
+    <fullyQualifiedTypeName name="com.noise_diary.com.z_config.jwt.JwtAuthenticationEntryPoint"/>
+    <fullyQualifiedTypeName name="com.noise_diary.com.z_config.jwt.JwtAuthenticationFilter"/>
+    <fullyQualifiedTypeName name="com.noise_diary.com.user.repository.UserRepository"/>
+    <fullyQualifiedTypeName name="com.noise_diary.com.user.entity.UserInfo"/>
+    <fullyQualifiedTypeName name="org.springframework.stereotype.Component"/>
+    <fullyQualifiedTypeName name="com.noise_diary.com.z_config.jwt.JwtTokenUtil"/>
+</qualifiedTypeNameHistroy>

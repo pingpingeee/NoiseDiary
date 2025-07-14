@@ -1,0 +1,78 @@
+package com.noise_diary.com.auth.controller;
+
+import com.noise_diary.com.auth.dto.LoginRequest;
+import com.noise_diary.com.auth.dto.LoginResponse;
+import com.noise_diary.com.auth.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:3000")
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            System.out.println("Login attempt for user: " + loginRequest.getUserId());
+            
+            LoginResponse loginResponse = authService.login(loginRequest);
+            
+            System.out.println("Login successful for user: " + loginRequest.getUserId());
+            System.out.println("Token generated: " + (loginResponse.getToken() != null ? "Yes" : "No"));
+            
+            return ResponseEntity.ok(loginResponse);
+        } catch (Exception e) {
+            System.err.println("Login failed for user: " + loginRequest.getUserId());
+            System.err.println("Error: " + e.getMessage());
+            
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestHeader(value = "Authorization", required = false) String token) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (token == null || !token.startsWith("Bearer ")) {
+                response.put("valid", false);
+                response.put("message", "Authorization 헤더가 없거나 형식이 잘못되었습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String jwtToken = token.substring(7); // "Bearer " 이후만 추출
+            System.out.println("Validating token: " + jwtToken.substring(0, Math.min(20, jwtToken.length())) + "...");
+            
+            boolean isValid = authService.validateToken(jwtToken);
+            response.put("valid", isValid);
+            response.put("message", isValid ? "토큰이 유효합니다" : "토큰이 유효하지 않습니다");
+            
+            System.out.println("Token validation result: " + isValid);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Token validation error: " + e.getMessage());
+            response.put("valid", false);
+            response.put("message", "토큰 검증 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Hello from Spring Boot!");
+        response.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        return ResponseEntity.ok(response);
+    }
+}

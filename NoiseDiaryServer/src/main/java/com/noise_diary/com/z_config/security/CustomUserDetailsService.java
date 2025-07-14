@@ -1,0 +1,58 @@
+package com.noise_diary.com.z_config.security;
+
+import com.noise_diary.com.user.entity.UserInfo;
+import com.noise_diary.com.user.repository.UserRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserInfo userInfo = userRepository.findByUserIdOrEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        return User.builder()
+                .username(userInfo.getUserId())
+                .password(userInfo.getPassword())
+                .authorities(getAuthorities(userInfo.getAdminStatus()))
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+    }
+    
+    // 관리자 상태에 따른 권한 설정
+    private Collection<? extends GrantedAuthority> getAuthorities(UserInfo.AdminStatus adminStatus) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        
+        switch (adminStatus) {
+            case ADMIN:
+                authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                break;
+            case USER:
+            default:
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                break;
+        }
+        
+        return authorities;
+    }
+}

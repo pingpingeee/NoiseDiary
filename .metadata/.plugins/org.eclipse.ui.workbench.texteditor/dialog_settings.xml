@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="hasShownOverlayPopupBefore" value="true"/>
+	<section name="java.lang.Class">
+		<list key="findhistory">
+			<item value="lidate"/>
+			<item value="user"/>
+			<item value="createToken"/>
+			<item value="return Jwts.parser()"/>
+			<item value="PathVariable"/>
+			<item value="debug"/>
+			<item value="heck-useri"/>
+			<item value="Hibernate"/>
+			<item value="println"/>
+			<item value=" // 간단한 성공 로그만 출력"/>
+			<item value="이메일 인증 요청"/>
+			<item value="SecurityFilterChain"/>
+			<item value="    @PostMapping(&quot;/register&quot;)"/>
+			<item value="메트로하우스"/>
+			<item value="메트로"/>
+		</list>
+		<list key="replacehistory">
+			<item value="소음일기"/>
+		</list>
+	</section>
+</section>

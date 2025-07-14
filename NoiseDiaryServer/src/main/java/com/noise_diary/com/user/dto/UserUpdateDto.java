@@ -1,0 +1,43 @@
+package com.noise_diary.com.user.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserUpdateDto {
+    
+    @Size(max = 50, message = "이름은 50자 이하여야 합니다")
+    private String name;
+    
+    @Email(message = "올바른 이메일 형식이 아닙니다")
+    @Size(max = 100, message = "이메일은 100자 이하여야 합니다")
+    private String email;
+    
+    @Pattern(regexp = "^01[0-9]-\\d{4}-\\d{4}$", message = "올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)")
+    private String phone;
+    
+    private LocalDate birthDate;
+    
+    @Size(max = 200, message = "도로명주소는 200자 이하여야 합니다")
+    private String roadAddress;
+    
+    @Size(max = 200, message = "주소는 200자 이하여야 합니다")
+    private String address;
+    
+    @Size(max = 100, message = "상세주소는 100자 이하여야 합니다")
+    private String detailAddress;
+    
+    // 비밀번호 변경용 (선택적)
+    @Size(min = 8, max = 20, message = "비밀번호는 8-20자 사이여야 합니다")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", 
+             message = "비밀번호는 대소문자, 숫자, 특수문자를 포함해야 합니다")
+    private String newPassword;
+    
+    private String confirmNewPassword;
+}
