@@ -1,4 +1,4 @@
-package com.noise_diary.com.z_config.security;
+package com.noise_diary.com.z_config.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,8 +13,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.noise_diary.com.z_config.jwt.JwtTokenUtil;
 
 import java.io.IOException;
 

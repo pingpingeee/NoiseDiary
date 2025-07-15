@@ -17,6 +17,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import com.noise_diary.com.z_config.jwt.JwtAuthenticationEntryPoint;
+import com.noise_diary.com.z_config.jwt.JwtAuthenticationFilter;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)

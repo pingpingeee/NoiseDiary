@@ -1,4 +1,4 @@
-package com.noise_diary.com.z_config.security;
+package com.noise_diary.com.z_config.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
