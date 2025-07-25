@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/auth/AuthForm';
 import RegisterForm from './components/auth/RegisterForm';
+import MainPage from './components/MainPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -32,6 +33,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
+            <Route path="/main" element={<MainPage/>}/>
             <Route path="/" element={
               <ProtectedRoute>
                 <HomePage />
