@@ -35,8 +35,9 @@ public class AuthController {
             
             // 쿠키에 액세스 토큰 설정
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", loginResponse.getToken())
-                    .httpOnly(true)        // XSS 공격 방지 (JavaScript로 접근 불가)
-                    .secure(false)         // HTTPS에서만 전송 (개발환경에서는 false)
+//                    .httpOnly(true)        // JavaScript로 접근 불가 => XSS 공격 방지해줌
+                    .httpOnly(false)        
+                    .secure(false)         // HTTPS에서만 전송 
                     .sameSite("Lax")       // CSRF 공격 방지
                     .maxAge(jwtExpiration) // JWT 만료시간과 동일하게 설정
                     .path("/")             // 모든 경로에서 쿠키 전송
