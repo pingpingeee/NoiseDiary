@@ -42,6 +42,7 @@ const AuthForm = () => {
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true) // 인증 체크 중 상태
 
   // 회원가입 관련 상태
   const [verificationCode, setVerificationCode] = useState("")
@@ -94,6 +95,31 @@ const AuthForm = () => {
     setCodeSent(false)
     setVerificationCode("")
   }
+
+    // 컴포넌트 마운트 시 인증 상태 체크
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        console.log("체크")
+        const isAuthenticated = await authService.isAuthenticated()
+        console.log("인증결과:", isAuthenticated)
+
+        if (isAuthenticated) {
+          console.log("이미 인증됨")
+          navigate("/main", { replace: true })
+          return
+        }
+
+        console.log("인증X")
+      } catch (error) {
+        console.log("에러:", error)
+      } finally {
+        setIsCheckingAuth(false)
+      }
+    }
+
+    checkAuthStatus()
+  }, [navigate])
 
   // 로그인 핸들러
   const handleLoginChange = (e) => {
@@ -473,6 +499,36 @@ const AuthForm = () => {
     setShowPassword(!showPassword)
   }
 
+    // 인증 상태 체크 중일 때 로딩 화면 표시
+  if (isCheckingAuth) {
+    return (
+      <>
+        <Header />
+        <div className="auth-page">
+          <div className="auth-container">
+            <div className="auth-card">
+              <div
+                className="loading-container"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "400px",
+                  gap: "1rem",
+                }}
+              >
+                <i className="fas fa-spinner fa-spin" style={{ fontSize: "2rem", color: "#666" }}></i>
+                <p style={{ color: "#666", fontSize: "1rem" }}>인증 상태를 확인하는 중...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
   // 회원가입 완료 단계
   if (!isLogin && currentStep === 5) {
     return (
@@ -600,11 +656,8 @@ const AuthForm = () => {
                           <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                         </button>
                       </div>
-                                            {/* 에러 메시지 - 여러 방식으로 테스트 */}
-                      {console.log("Rendering error section, error:", error)}
 
-                      {/* 방법 1: 기존 방식 */}
-                      {error && (
+                      {/* {error && (
                         <div
                           className="error-message"
                           style={{
@@ -619,7 +672,7 @@ const AuthForm = () => {
                           <i className="fas fa-exclamation-triangle"></i>
                           <span>{error}</span>
                         </div>
-                      )}
+                      )} */}
 
                       {/* 에러 메시지 - display 속성 사용 방식으로 변경 */}
                       <div
