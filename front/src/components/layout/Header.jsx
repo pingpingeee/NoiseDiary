@@ -134,11 +134,11 @@ const Header = () => {
             // 로그인되지 않은 상태
             <div className="auth-buttons">
               <button onClick={() => handleNavigation("/login")} className="btn btn-ghost">
-                로그인
+                로그인 & 회원가입
               </button>
-              <button onClick={() => handleNavigation("/login")} className="btn btn-primary">
+              {/* <button onClick={() => handleNavigation("/login")} className="btn btn-primary">
                 회원가입
-              </button>
+              </button> */}
             </div>
           )}
         </div>
