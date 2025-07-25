@@ -116,7 +116,7 @@ const AuthForm = () => {
 
     try {
       const result = await authService.login(loginData)
-      navigate("/dashboard")
+      navigate("/main")
     } catch (error) {
       if (error.response?.data?.message) {
         setError(error.response.data.message)
@@ -600,6 +600,47 @@ const AuthForm = () => {
                           <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                         </button>
                       </div>
+                                            {/* 에러 메시지 - 여러 방식으로 테스트 */}
+                      {console.log("Rendering error section, error:", error)}
+
+                      {/* 방법 1: 기존 방식 */}
+                      {error && (
+                        <div
+                          className="error-message"
+                          style={{
+                            marginTop: "0.5rem",
+                            color: "red",
+                            backgroundColor: "#ffe6e6",
+                            padding: "8px",
+                            border: "1px solid red",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          <i className="fas fa-exclamation-triangle"></i>
+                          <span>{error}</span>
+                        </div>
+                      )}
+
+                      {/* 에러 메시지 - display 속성 사용 방식으로 변경 */}
+                      <div
+                        className="error-message"
+                        style={{
+                          marginTop: "0.5rem",
+                          display: error ? "flex" : "none",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          color: "#dc2626",
+                          backgroundColor: "#fef2f2",
+                          padding: "0.75rem",
+                          border: "1px solid #fecaca",
+                          borderRadius: "0.375rem",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        <i className="fas fa-exclamation-triangle" style={{ color: "#dc2626" }}></i>
+                        <span>{error}</span>
+                      </div>
+
                     </div>
 
                     <div className="login-options">
