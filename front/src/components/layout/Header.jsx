@@ -1,12 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { authService } from "../../services/authService"
 import "./Header.css"
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+
+  // 인증 상태 확인
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const authStatus = await authService.isAuthenticated()
+        setIsAuthenticated(authStatus)
+
+        if (authStatus) {
+          const userInfo = authService.getCurrentUser()
+          setUser(userInfo)
+          console.log("유저정보:", userInfo)
+        }
+      } catch (error) {
+        console.error("인증 상태 에러 :", error)
+        setIsAuthenticated(false)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAuthStatus()
+  }, [])
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -15,6 +43,19 @@ const Header = () => {
   const handleNavigation = (path) => {
     navigate(path)
     setIsMenuOpen(false)
+  }
+
+  const handleLogout = async () => {
+    try {
+      console.log("로그아웃")
+      await authService.logout()
+      setIsAuthenticated(false)
+      setUser(null)
+      navigate("/", { replace: true })
+      setIsMenuOpen(false)
+    } catch (error) {
+      console.error("로그아웃에러", error)
+    }
   }
 
   return (
@@ -68,14 +109,38 @@ const Header = () => {
           </ul>
         </nav>
 
-        {/* 액션 버튼들 */}
         <div className="header-actions">
-          <button onClick={() => handleNavigation("/login")} className="btn btn-ghost">
-            로그인
-          </button>
-          {/* <button onClick={() => handleNavigation("/register")} className="btn btn-primary">
-            회원가입
-          </button> */}
+          {loading ? (
+            // 로딩 중일 때
+            <div className="auth-loading">
+              <i className="fas fa-spinner fa-spin" style={{ color: "#666" }}></i>
+            </div>
+          ) : isAuthenticated ? (
+            // 로그인된 상태
+            <div className="user-menu">
+              {/* <div className="user-info">
+                <span className="user-name">
+                  <i className="fas fa-user" style={{ marginRight: "0.5rem" }}></i>
+                  {user?.name || user?.userId || "사용자"}님
+                </span>
+              </div> */}
+
+              <button onClick={handleLogout} className="btn btn-outline">
+                <i className="fas fa-sign-out-alt" style={{ marginRight: "0.5rem" }}></i>
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            // 로그인되지 않은 상태
+            <div className="auth-buttons">
+              <button onClick={() => handleNavigation("/login")} className="btn btn-ghost">
+                로그인
+              </button>
+              <button onClick={() => handleNavigation("/login")} className="btn btn-primary">
+                회원가입
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 모바일 메뉴 버튼 */}
@@ -114,45 +179,80 @@ const Header = () => {
               <ul className="mobile-nav-list">
                 <li className="mobile-nav-item">
                   <button onClick={() => handleNavigation("/")} className="mobile-nav-link">
-                    <span className="nav-icon">🏠</span>
+                    <span className="nav-icon">
+                      <i className="fas fa-home"></i>
+                    </span>
                     홈
                   </button>
                 </li>
                 <li className="mobile-nav-item">
                   <button onClick={() => handleNavigation("/about")} className="mobile-nav-link">
-                    <span className="nav-icon">ℹ️</span>
+                    <span className="nav-icon">
+                      <i className="fas fa-info-circle"></i>
+                    </span>
                     서비스 소개
                   </button>
                 </li>
                 <li className="mobile-nav-item">
                   <button onClick={() => handleNavigation("/features")} className="mobile-nav-link">
-                    <span className="nav-icon">⚡</span>
+                    <span className="nav-icon">
+                      <i className="fas fa-magic"></i>
+                    </span>
                     기능
                   </button>
                 </li>
                 <li className="mobile-nav-item">
                   <button onClick={() => handleNavigation("/pricing")} className="mobile-nav-link">
-                    <span className="nav-icon">💎</span>
+                    <span className="nav-icon">
+                      <i className="fas fa-crown"></i>
+                    </span>
                     요금제
                   </button>
                 </li>
                 <li className="mobile-nav-item">
                   <button onClick={() => handleNavigation("/support")} className="mobile-nav-link">
-                    <span className="nav-icon">🎧</span>
+                    <span className="nav-icon">
+                      <i className="fas fa-headset"></i>
+                    </span>
                     고객지원
                   </button>
                 </li>
               </ul>
             </nav>
 
-            <div className="mobile-actions">
+            {/* <div className="mobile-actions">
               <button onClick={() => handleNavigation("/login")} className="btn btn-ghost btn-full">
-                로그인
+                로그인 & 회원가입
               </button>
-              <button onClick={() => handleNavigation("/register")} className="btn btn-primary btn-full">
-                회원가입
-              </button>
+            </div> */}
+
+
+            <div className="mobile-actions">
+              {loading ? (
+                <div className="mobile-auth-loading">
+                  <i className="fas fa-spinner fa-spin"></i>
+                </div>
+              ) : isAuthenticated ? (
+                // 로그인된 상태 - 모바일
+                <div className="mobile-user-menu">
+                  {/* <div className="mobile-user-info">
+                    <i className="fas fa-user"></i>
+                    <span>{user?.name || user?.userId || "사용자"}님</span>
+                  </div> */}
+
+                  <button onClick={handleLogout} className="btn btn-outline btn-full">
+                    <i className="fas fa-sign-out-alt" style={{ marginRight: "0.5rem" }}></i>
+                    로그아웃
+                  </button>
+                </div>
+              ) : (
+                // 로그인되지 않은 상태 - 모바일
+                <button onClick={() => handleNavigation("/login")} className="btn btn-ghost btn-full">
+                  로그인 & 회원가입
+                </button>
+              )}
             </div>
+
           </div>
         </div>
       )}
