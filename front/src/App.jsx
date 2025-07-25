@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/auth/AuthForm';
 import RegisterForm from './components/auth/RegisterForm';
-import MainPage from './components/MainPage';
+import MainPage from './components/main/MainPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {

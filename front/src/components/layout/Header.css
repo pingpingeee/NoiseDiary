@@ -56,10 +56,7 @@
   /* 애니메이션 제거 */
 }
 
-/* 로고 호버 애니메이션 제거 */
-.header-logo:hover .logo-icon {
-  /* 모든 애니메이션 제거 */
-}
+
 
 .header-logo-text {
   display: flex;
