@@ -116,7 +116,7 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-
+{/* 
             <div className="footer-section">
               <h3 className="footer-section-title">회사</h3>
               <ul className="footer-link-list">
@@ -141,7 +141,7 @@ const Footer = () => {
                   </button>
                 </li>
               </ul>
-            </div>
+            </div> */}
 
             <div className="footer-section">
               <h3 className="footer-section-title">법적 고지</h3>
@@ -203,7 +203,7 @@ const Footer = () => {
             <p className="copyright">
               © {currentYear} 소음일기(Noise Diary). All rights reserved.
             </p>
-            <div className="footer-bottom-links">
+            {/* <div className="footer-bottom-links">
               <button onClick={() => handleNavigation("/sitemap")} className="bottom-link">
                 사이트맵
               </button>
@@ -213,7 +213,7 @@ const Footer = () => {
               <button onClick={() => handleNavigation("/security")} className="bottom-link">
                 보안
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
